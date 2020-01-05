@@ -1,0 +1,165 @@
+#!/usr/bin/python3
+import curses
+import os
+import sys
+from Frame import Frame
+import time
+
+
+def main(stdscr):
+    curses.curs_set(0)
+    curses.use_default_colors()
+    # normal
+    curses.init_pair(0, -1, -1)
+    # current element
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    # current element marked
+    curses.init_pair(2, 130, curses.COLOR_WHITE)
+    # marked
+    curses.init_pair(3, 130, -1)
+    # directory
+    curses.init_pair(4, 33, -1)
+    # directory current element
+    curses.init_pair(5, 33, 7)
+
+    # 34 green
+    # 81 light blue
+    # 160 red
+    # 162/163 purple
+    # 184 green/yellow
+    # 160 red
+
+    # 7 / COLOR_WHITE -> background for curr_pos
+    # 130 orange -> use for marked
+    # 33 light blue use for directories
+
+    cwd = os.getcwd()
+    if len(sys.argv) > 1:
+        if sys.argv[1].startswith("~") or sys.argv[1].startswith("/"):
+            cwd = sys.argv[1]
+        else:
+            cwd = cwd + "/" + sys.argv[1].strip("/")
+        os.chdir(cwd)
+
+    dir_contents = os.listdir(cwd)
+    my_frame = Frame(cwd, dir_contents, stdscr)
+    # my_frame.print_stuff(cwd)
+    # my_frame.move_file('moveme', 'a/hwg')
+    # time.sleep(3)
+
+    def color_print(start):
+        end = start + my_frame.rows
+        line = 0
+        while start < end:
+            curses.init_pair(start, start, -1)
+            my_frame.stdscr.attron(curses.color_pair(start))
+            my_frame.stdscr.addstr(line, 0, str(start))
+            my_frame.stdscr.attroff(curses.color_pair(start))
+            start += 1
+            line += 1
+        my_frame.stdscr.refresh()
+        time.sleep(1000)
+        exit()
+
+    # color_print(my_frame.rows * 5 + 28)
+    # color_print(my_frame.rows * 4)
+
+    my_frame.print_contents()
+    os.popen('mkdir -p ' + my_frame.tmpfile)
+    os.popen('mkdir -p ' + my_frame.deleted)
+
+    while True:
+        key = stdscr.getch()
+        if key == curses.KEY_RESIZE:
+            my_frame.resize()
+        # if chr(key) == "u":
+        #     string = my_frame.get_from_line("TEST:")
+        #     my_frame.print_contents(string)
+        if chr(key) == ":":
+            my_frame.console()
+        if chr(key) == "h":
+            my_frame.change_dir("..")
+        if chr(key) == "j":
+            my_frame.move_cursor(1)
+        if chr(key) == "k":
+            my_frame.move_cursor(-1)
+        if chr(key) == "l":
+            my_frame.open_file(my_frame.dir_contents[my_frame.curr_pos])
+        if chr(key) == "t":
+            my_frame.create_file("t")
+        if chr(key) == "m":
+            my_frame.create_file("d")
+        if chr(key) == "d":
+            my_frame.delete_file(my_frame.dir_contents[my_frame.curr_pos])
+        if chr(key) == "D":
+            my_frame.delete_marked()
+        if chr(key) == "M":
+            my_frame.move_marked(my_frame.cwd)
+        if chr(key) == "r":
+            my_frame.rename_file(my_frame.dir_contents[my_frame.curr_pos])
+        if chr(key) == "v":
+            my_frame.mark(my_frame.dir_contents[my_frame.curr_pos])
+        if chr(key) == "V":
+            my_frame.mark_mode()
+        if chr(key) == "q":
+            exit()
+        if chr(key) == "g":
+            my_frame.move_cursor(-1*my_frame.curr_pos)
+        if chr(key) == "G":
+            if my_frame.max_pos < my_frame.bottom_offset:
+                my_frame.move_cursor(my_frame.max_pos - my_frame.curr_pos)
+            else:
+                my_frame.curr_pos = my_frame.max_pos
+                my_frame.curr_top = (my_frame.max_pos -
+                                     my_frame.bottom_offset + 1)
+                my_frame.print_contents()
+        # if chr(key) == "H":
+        #     # my_frame.move_cursor(-(my_frame.curr_pos - my_frame.curr_top))
+        #     my_frame.curr_pos = my_frame.curr_top
+        #     my_frame.print_contents()
+        # if chr(key) == "M":
+        #     my_frame.curr_pos = (my_frame.curr_top +
+        #                          min(my_frame.bottom_offset,
+        #                              my_frame.max_pos)//2)
+        #     my_frame.print_contents()
+            # my_frame.move_cursor(-(my_frame.curr_pos -
+            # my_frame.curr_top) +
+            #                      (min(my_frame.bottom_offset,
+            #                           my_frame.max_pos) // 2))
+        # if chr(key) == "L":
+        #     # my_frame.move_cursor((-(my_frame.curr_pos -
+        #     # my_frame.curr_top) +
+        #     #                      my_frame.bottom_offset - 1))
+        #     my_frame.curr_pos = (my_frame.curr_top +
+        #                          min(my_frame.bottom_offset
+        #                              - 1,  my_frame.max_pos))
+        #     my_frame.print_contents()
+        if chr(key) == "H":
+            if ((my_frame.curr_pos-my_frame.bottom_offset//2) >=
+                    0):
+                my_frame.move_cursor(-my_frame.bottom_offset//3)
+            else:
+                my_frame.move_cursor(-my_frame.curr_pos)
+        if chr(key) == "L":
+            if ((my_frame.curr_pos+my_frame.bottom_offset//2) <
+                    my_frame.max_pos):
+                my_frame.move_cursor(my_frame.bottom_offset//2)
+            else:
+                if my_frame.max_pos < my_frame.bottom_offset:
+                    my_frame.move_cursor(my_frame.max_pos - my_frame.curr_pos)
+                else:
+                    my_frame.curr_pos = my_frame.max_pos
+                    my_frame.curr_top = (my_frame.max_pos -
+                                         my_frame.bottom_offset + 1)
+            # my_frame.curr_pos = (my_frame.curr_top +
+            #                      min(my_frame.bottom_offset//2
+            #                          - 1,  my_frame.max_pos))
+            my_frame.print_contents()
+        if chr(key) == "R":
+            my_frame.reload_dir()
+            my_frame.print_contents("reloaded")
+
+        stdscr.refresh()
+
+
+curses.wrapper(main)
