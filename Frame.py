@@ -445,38 +445,40 @@ class Frame:
 
     def open_file(self, file):
         file_ext = os.path.splitext(self.dir_contents[self.curr_pos])[1]
-        if file_ext == "":
-            if os.path.isdir(file):
-                self.change_dir(file)
-            else:
-                subprocess.Popen(['rxvt', '-e', 'vim', file])
-        elif (file_ext == ".png"
-                or file_ext == ".jpg"
-                or file_ext == ".jpeg"):
-            self.open_image(file)
-        elif file_ext == ".pdf":
-            self.open_with(file, 'zathura')
-        elif file_ext == ".mp3":
-            with open(os.devnull, 'w') as devnull:
-                subprocess.Popen(
-                    ["mpv", "--external-file",
-                     self.music_icon,
-                     "--audio-display=attachment",
-                     "--keep-open=yes", file],
-                    stdout=devnull, stderr=devnull)
-        elif(file_ext == ".gif"):
-            with open(os.devnull, 'w') as devnull:
-                subprocess.Popen(
-                    ["mpv",
-                     "--loop-file=inf", file],
-                    stdout=devnull, stderr=devnull)
-        elif (file_ext == ".mp4"
-                or file_ext == ".mkv"
-                or file_ext == ".m4a"
-                or file_ext == ".webm"):
-            with open(os.devnull, 'w') as devnull:
-                subprocess.Popen(
-                    ["mpv", "--keep-open=yes", file],
+        with open(os.devnull, 'w') as devnull:
+            if file_ext == "":
+                if os.path.isdir(file):
+                    self.change_dir(file)
+                else:
+                    subprocess.Popen(['urxvt', '-e', 'vim', file],
+                                     stdout=devnull, stderr=devnull)
+            elif (file_ext == ".png"
+                    or file_ext == ".jpg"
+                    or file_ext == ".jpeg"):
+                self.open_image(file)
+            elif file_ext == ".pdf":
+                self.open_with(file, 'zathura')
+            elif file_ext == ".mp3":
+                with open(os.devnull, 'w') as devnull:
+                    subprocess.Popen(
+                        ["mpv", "--external-file",
+                         self.music_icon,
+                         "--audio-display=attachment",
+                         "--keep-open=yes", file],
+                        stdout=devnull, stderr=devnull)
+            elif(file_ext == ".gif"):
+                with open(os.devnull, 'w') as devnull:
+                    subprocess.Popen(
+                        ["mpv",
+                         "--loop-file=inf", file],
+                        stdout=devnull, stderr=devnull)
+            elif (file_ext == ".mp4"
+                    or file_ext == ".mkv"
+                    or file_ext == ".m4a"
+                    or file_ext == ".webm"):
+                with open(os.devnull, 'w') as devnull:
+                    subprocess.Popen(
+                        ["mpv", "--keep-open=yes", file],
                     stdout=devnull, stderr=devnull)
 
     def rename_file(self, file):
