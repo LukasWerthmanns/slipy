@@ -250,7 +250,7 @@ class Frame:
             i += 1
         # Print Message
         if message == "":
-            message = self.cwd
+            message = self.cwd[-(self.columns*2 - 5):]
             # message = str(self.curr_pos_entries) + str(self.dir_depth)
         message_end_string = message + " " * (self.columns - len(message))
         self.stdscr.addstr(self.rows - 2, 0, message_end_string)
@@ -313,7 +313,8 @@ class Frame:
     def delete_file(self, file):
         self.reload_dir()
         try:
-            os.rename(file, os.path.join(self.deleted, file))
+            # os.rename(file, os.path.join(self.deleted, file))
+            shutil.move(file, os.path.join(self.deleted, file))
         except FileNotFoundError:
             return
         except OSError:
@@ -446,7 +447,7 @@ class Frame:
     def open_file(self, file):
         file_ext = os.path.splitext(self.dir_contents[self.curr_pos])[1]
         with open(os.devnull, 'w') as devnull:
-            if file_ext == "":
+            if file_ext == "" or file_ext == ".txt":
                 if os.path.isdir(file):
                     self.change_dir(file)
                 else:
@@ -454,11 +455,13 @@ class Frame:
                                      stdout=devnull, stderr=devnull)
             elif (file_ext == ".png"
                     or file_ext == ".jpg"
+                    or file_ext == ".jfif"
                     or file_ext == ".jpeg"):
                 self.open_image(file)
             elif file_ext == ".pdf":
                 self.open_with(file, 'zathura')
-            elif file_ext == ".mp3":
+            elif (file_ext == ".mp3"
+                  or file_ext == ".m4a"):
                 with open(os.devnull, 'w') as devnull:
                     subprocess.Popen(
                         ["mpv", "--external-file",
@@ -474,12 +477,11 @@ class Frame:
                         stdout=devnull, stderr=devnull)
             elif (file_ext == ".mp4"
                     or file_ext == ".mkv"
-                    or file_ext == ".m4a"
                     or file_ext == ".webm"):
                 with open(os.devnull, 'w') as devnull:
                     subprocess.Popen(
                         ["mpv", "--keep-open=yes", file],
-                    stdout=devnull, stderr=devnull)
+                        stdout=devnull, stderr=devnull)
 
     def rename_file(self, file):
         renamefile = self.tmpfile + "renamefile"

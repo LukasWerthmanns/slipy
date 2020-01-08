@@ -84,7 +84,10 @@ def main(stdscr):
         if chr(key) == "k":
             my_frame.move_cursor(-1)
         if chr(key) == "l":
-            my_frame.open_file(my_frame.dir_contents[my_frame.curr_pos])
+            try:
+                my_frame.open_file(my_frame.dir_contents[my_frame.curr_pos])
+            except IndexError:
+                my_frame.print_contents("directory has no contents")
         if chr(key) == "t":
             my_frame.create_file("t")
         if chr(key) == "m":
