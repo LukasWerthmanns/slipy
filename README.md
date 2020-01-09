@@ -1,6 +1,9 @@
 # slipy
 Terminal based file manager that uses vim-like bindings
 
+## Programs
+Slipy uses mpv, sxiv and zathura to open files. There is currently no support for other programs
+
 ## Commands
 # Movement
 h	- Move down in filepath
